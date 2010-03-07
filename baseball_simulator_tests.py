@@ -1,5 +1,5 @@
 import unittest
-from baseball_simulator import BaseballSimulator
+from baseball_simulator import BaseballSimulator, TooManyStrikes, TooManyBalls, TooManyOuts
 
 class TestBaseBallSimulator(unittest.TestCase):
     def setUp(self):
@@ -22,11 +22,20 @@ class TestBaseBallSimulator(unittest.TestCase):
         self.baseball_simulator.set_num_balls(3)
         self.assertEqual(self.baseball_simulator.get_num_balls(), 3)
 
+        self.assertRaises(TooManyBalls, self.baseball_simulator.set_num_balls, 4)
 
     def test_strikes(self):
         self.baseball_simulator.set_num_strikes(2)
         self.assertEqual(self.baseball_simulator.get_num_strikes(), 2)
+
+        self.assertRaises(TooManyStrikes, self.baseball_simulator.set_num_strikes, 3)
         
+    def test_outs(self):
+        self.baseball_simulator.set_num_outs(2)
+        self.assertEqual(self.baseball_simulator.get_num_outs(), 2)
+
+        self.assertRaises(TooManyOuts, self.baseball_simulator.set_num_outs, 3)
+
 
 if __name__ == '__main__':
     unittest.main()
