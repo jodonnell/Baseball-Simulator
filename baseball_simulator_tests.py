@@ -36,6 +36,15 @@ class TestBaseBallSimulator(unittest.TestCase):
 
         self.assertRaises(TooManyOuts, self.baseball_simulator.set_num_outs, 3)
 
+    def test_possible_outcomes(self):
+        possiblities = ['Base hit', 'Double', 'Triple', 'Home run', 'Strike', 'Foul', 'Ball', 'Walk (batter hit)', 'Popup']
+        possiblities.sort()
+        self.assertEqual(self.baseball_simulator.get_possible_plays(), possiblities)
+
+        self.baseball_simulator.set_num_strikes(2)
+        possiblities.append('Strike Out')
+        possiblities.sort()
+        self.assertEqual(self.baseball_simulator.get_possible_plays(), possiblities)
 
 if __name__ == '__main__':
     unittest.main()

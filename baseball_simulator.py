@@ -72,3 +72,8 @@ class BaseballSimulator(object):
         
     def get_num_outs(self):
         return self._num_outs
+
+    def get_possible_plays(self):
+        possible_plays = ['Base hit', 'Double', 'Triple', 'Home run', 'Strike', 'Foul', 'Ball', 'Walk (batter hit)', 'Popup']
+        possible_plays.sort()
+        return possible_plays
