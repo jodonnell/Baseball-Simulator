@@ -23,5 +23,10 @@ class TestBaseBallSimulator(unittest.TestCase):
         self.assertEqual(self.baseball_simulator.get_num_balls(), 3)
 
 
+    def test_strikes(self):
+        self.baseball_simulator.set_num_strikes(2)
+        self.assertEqual(self.baseball_simulator.get_num_strikes(), 2)
+        
+
 if __name__ == '__main__':
     unittest.main()

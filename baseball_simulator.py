@@ -7,6 +7,7 @@ class BaseballSimulator(object):
     def __init__(self):
         self._men_on_base = []
         self._num_balls = 0
+        self._num_strikes = 0
 
     def _set_man_on(self, base):
         if base not in self._men_on_base:
@@ -40,3 +41,11 @@ class BaseballSimulator(object):
 
     def get_num_balls(self):
         return self._num_balls
+
+    def set_num_strike(self, num_strikes):
+        self._num_strikes = num_strikes
+
+    def get_num_strikes(self):
+        return self._num_strikes
+
+    
