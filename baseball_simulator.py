@@ -9,6 +9,10 @@ BOTTOM_OF_INNING = 2
 BALLS_TO_WALK = 4
 INNINGS_IN_GAME = 9
 
+STRIKES_IN_OUT = 3
+
+OUTS_IN_AT_BAT = 3
+
 class BaseballSimulatorExceptions(Exception):
     pass
 
@@ -64,15 +68,6 @@ class BaseballSimulator(object):
         self.home_team = Team()
         self._inning = Inning(self.visiting_team, self.home_team)
 
-    def _set_man_on(self, base):
-        if base not in self._men_on_base:
-            self._men_on_base.append(base)
-
-    def _is_man_on_base(self, base):
-        if base in self._men_on_base:
-            return True
-        return False
-
     def is_man_on_first(self):
         return self._is_man_on_base(FIRST_BASE)
 
@@ -94,9 +89,20 @@ class BaseballSimulator(object):
     def is_game_over(self):
         return self._game_over
 
+    def is_score_tied(self):
+        if self.home_team.get_score() == self.visiting_team.get_score():
+            return True
+        return False
+
+    def get_inning(self):
+        return self._inning.get_inning()
+
+    def get_inning_half(self):
+        return self._inning.get_inning_half()
+
     def strike(self):
         self._num_strikes += 1
-        if self._num_strikes == 3:
+        if self._num_strikes == STRIKES_IN_OUT:
             self._out()
             self._new_at_bat()
 
@@ -110,6 +116,22 @@ class BaseballSimulator(object):
         self._new_at_bat()
         self._walk()
 
+    def foul(self):
+        if self._num_strikes < STRIKES_IN_OUT - 1:
+            self._num_strikes += 1
+
+    def hit(self, hit_strategy):
+        pass
+
+    def _set_man_on(self, base):
+        if base not in self._men_on_base:
+            self._men_on_base.append(base)
+
+    def _is_man_on_base(self, base):
+        if base in self._men_on_base:
+            return True
+        return False
+
     def _walk(self):
         if self.is_man_on_first() and self.is_man_on_second() and self.is_man_on_third():
             self._inning.get_team_at_bat().score()
@@ -121,37 +143,18 @@ class BaseballSimulator(object):
         self._set_man_on(FIRST_BASE)
         self._new_at_bat()
 
-    def foul(self):
-        if self._num_strikes < 2:
-            self._num_strikes += 1
-
-    # multiple things can happen, any runner can be out
-    def hit(self, hit_strategy):
-#        hit_strategy.
-        pass
-
     def _out(self):
          self._num_outs += 1
-         if self._num_outs == 3:
+         if self._num_outs == OUTS_IN_AT_BAT:
              self._num_outs = 0
-             self._new_at_bat()
              self._change_team_at_bat()
 
     def _change_team_at_bat(self):
+        self._new_at_bat()
         self._inning.at_bat_over()
+
         if self._inning.could_game_be_over() and not self.is_score_tied():
             self._game_over = True
-
-    def is_score_tied(self):
-        if self.home_team.get_score() == self.visiting_team.get_score():
-            return True
-        return False
-
-    def get_inning(self):
-        return self._inning.get_inning()
-
-    def get_inning_half(self):
-        return self._inning.get_inning_half()
 
     def _new_at_bat(self):
         self._num_strikes = 0

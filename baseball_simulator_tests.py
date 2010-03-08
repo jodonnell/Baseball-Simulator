@@ -95,10 +95,5 @@ class TestBaseBallSimulator(unittest.TestCase):
 
 
 
-# need to create score
-#     def test_teams(self):
-#         self.assertEqual(self.baseball_simulator.team1.get_score(), 0)
-
-
 if __name__ == '__main__':
     unittest.main()
