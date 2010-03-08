@@ -1,3 +1,4 @@
+import random
 
 FIRST_BASE = 1
 SECOND_BASE = 2
@@ -13,7 +14,24 @@ STRIKES_IN_OUT = 3
 
 OUTS_IN_AT_BAT = 3
 
+
 class BaseballSimulatorExceptions(Exception):
+    pass
+
+# class RandomHit(object):
+#     def random(self):
+        
+
+class Bases(object):
+    self.bases = (Base(), Base(), Base(), HomeBase())
+    
+    for base in self.bases.reverse():
+        if base.has_runner():
+            base.remove_runner()
+            possible_bases = base.get_possible_bases() # bases
+            runner_strategy.decide(possible_bases) # will either place runner on base or remove him completely from play
+
+class Runner(object):
     pass
 
 class Inning(object):

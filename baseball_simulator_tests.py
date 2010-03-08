@@ -94,6 +94,10 @@ class TestBaseBallSimulator(unittest.TestCase):
         self.assertEqual(self.baseball_simulator.visiting_team.get_score(), 1)
 
 
+    def test_hit(self):
+        self.baseball_simulator.hit(RunnersAdvanceOne())
+        self.baseball_simulator.hit(RunnersAdvanceOne())
+
 
 if __name__ == '__main__':
     unittest.main()
