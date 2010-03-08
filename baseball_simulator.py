@@ -6,14 +6,15 @@ THIRD_BASE = 3
 class BaseballSimulatorExceptions(Exception):
     pass
 
-class TooManyStrikes(BaseballSimulatorExceptions):
-    pass
+class Team(object):
+    def __init__(self):
+        self._score = 0
 
-class TooManyBalls(BaseballSimulatorExceptions):
-    pass
+    def get_score(self):
+        return self._score
 
-class TooManyOuts(BaseballSimulatorExceptions):
-    pass
+    def score(self):
+        self._score += 1
 
 class BaseballSimulator(object):
     def __init__(self):
@@ -21,6 +22,10 @@ class BaseballSimulator(object):
         self._num_balls = 0
         self._num_strikes = 0
         self._num_outs = 0
+        self._inning = 1
+        self._game_over = False
+        self.team1 = Team()
+        self.team2 = Team()
 
     def _set_man_on(self, base):
         if base not in self._men_on_base:
@@ -49,31 +54,71 @@ class BaseballSimulator(object):
     def is_man_on_third(self):
         return self._is_man_on_base(THIRD_BASE)
 
-    def set_num_balls(self, num_balls):
-        if num_balls > 3:
-            raise TooManyBalls()
-        self._num_balls = num_balls
-
     def get_num_balls(self):
         return self._num_balls
-
-    def set_num_strikes(self, num_strikes):
-        if num_strikes > 2:
-            raise TooManyStrikes()
-        self._num_strikes = num_strikes
 
     def get_num_strikes(self):
         return self._num_strikes
 
-    def set_num_outs(self, num_outs):
-        if num_outs > 2:
-            raise TooManyOuts()
-        self._num_outs = num_outs
-        
     def get_num_outs(self):
         return self._num_outs
 
-    def get_possible_plays(self):
-        possible_plays = ['Base hit', 'Double', 'Triple', 'Home run', 'Strike', 'Foul', 'Ball', 'Walk (batter hit)', 'Popup']
-        possible_plays.sort()
-        return possible_plays
+    def is_game_over(self):
+        return self._game_over
+
+    def strike(self):
+        self._num_strikes += 1
+        if self._num_strikes == 3:
+            self._out()
+            self._new_at_bat()
+
+    def ball(self):
+        self._num_balls += 1
+        if self._num_balls == 4:
+            self._walk()
+            self._new_at_bat()
+
+    def _walk(self):
+        self.set_man_on_first()
+
+    def foul(self):
+        if self._num_strikes < 2:
+            self._num_strikes += 1
+
+    # multiple things can happen, any runner can be out
+    def hit(self, hit_strategy):
+#        hit_strategy.
+        pass
+
+    def _out(self):
+         self._num_outs += 1
+         if self._num_outs == 3:
+             self._num_outs = 0
+             self._new_at_bat()
+             self._new_inning()
+
+    def _new_inning(self):
+        self._inning += 1
+        if self._inning == 9:
+            self._game_over = True
+
+    def get_inning(self):
+        return self._inning
+
+    def _new_at_bat(self):
+        self._num_strikes = 0
+        self._num_balls = 0
+
+# output game state after play, strikes could be up, balls, outs, reset balls and strikes on end of bat
+
+# ['Base hit', 'Double', 'Triple', 'Home run', 'Strike', 'Foul', 'Ball', 'Walk (batter hit)', 'Popup',
+# 'Strike Out', 'Walk (4 balls)', 'X runs scored', 'Inning over', 'Grand Slam', 'Runner advances from x to x', 'Runner x is out'
+
+# ]
+
+if __name__ == '__main__':
+    baseball_simulator = BaseballSimulator()
+    baseball_simulator.set_num_strikes(2)
+    baseball_simulator.set_num_outs(2)
+    print baseball_simulator.get_possible_plays()
+    

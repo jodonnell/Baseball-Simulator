@@ -1,5 +1,5 @@
 import unittest
-from baseball_simulator import BaseballSimulator, TooManyStrikes, TooManyBalls, TooManyOuts
+from baseball_simulator import BaseballSimulator
 
 class TestBaseBallSimulator(unittest.TestCase):
     def setUp(self):
@@ -18,33 +18,64 @@ class TestBaseBallSimulator(unittest.TestCase):
         self.baseball_simulator.set_man_on_third()
         self.assertTrue(self.baseball_simulator.is_man_on_third())
 
-    def test_balls(self):
-        self.baseball_simulator.set_num_balls(3)
-        self.assertEqual(self.baseball_simulator.get_num_balls(), 3)
+    def test_strike(self):
+        self.baseball_simulator.strike()
+        self.assertEqual(self.baseball_simulator.get_num_strikes(), 1)
 
-        self.assertRaises(TooManyBalls, self.baseball_simulator.set_num_balls, 4)
+        self.assertEqual(self.baseball_simulator.get_num_outs(), 0)
+        self.baseball_simulator.strike()
+        self.baseball_simulator.strike()
+        self.assertEqual(self.baseball_simulator.get_num_outs(), 1)
 
-    def test_strikes(self):
-        self.baseball_simulator.set_num_strikes(2)
+        self.assertEqual(self.baseball_simulator.get_num_strikes(), 0)
+
+
+    def test_ball(self):
+        self.assertEqual(self.baseball_simulator.get_num_balls(), 0)
+        self.baseball_simulator.ball()
+        self.assertEqual(self.baseball_simulator.get_num_balls(), 1)
+        
+        self.baseball_simulator.ball()
+        self.baseball_simulator.ball()
+        self.baseball_simulator.ball()
+
+        self.assertEqual(self.baseball_simulator.get_num_balls(), 0)
+
+    def test_foul(self):
+        self.assertEqual(self.baseball_simulator.get_num_strikes(), 0)
+        self.baseball_simulator.foul()
+        self.assertEqual(self.baseball_simulator.get_num_strikes(), 1)
+        self.baseball_simulator.foul()
+        self.baseball_simulator.foul()
         self.assertEqual(self.baseball_simulator.get_num_strikes(), 2)
 
-        self.assertRaises(TooManyStrikes, self.baseball_simulator.set_num_strikes, 3)
+#     def test_hit(self):
+#         self.baseball_simulator.hit()
+
+    def test_inning(self):
+        self.assertEqual(self.baseball_simulator.get_inning(), 1)
+        for i in range(9):
+            self.baseball_simulator.strike()
+
+        self.assertEqual(self.baseball_simulator.get_inning(), 2)
+
+    def test_game_over(self):
+        self.assertFalse(self.baseball_simulator.is_game_over())
+        for i in range(3 * 3 * 9):
+            self.baseball_simulator.strike()
+
+        self.assertTrue(self.baseball_simulator.is_game_over())
         
-    def test_outs(self):
-        self.baseball_simulator.set_num_outs(2)
-        self.assertEqual(self.baseball_simulator.get_num_outs(), 2)
+    def test_walk(self):
+        for i in range(4):
+            self.baseball_simulator.ball()
 
-        self.assertRaises(TooManyOuts, self.baseball_simulator.set_num_outs, 3)
+        self.assertTrue(self.baseball_simulator.is_man_on_first())
 
-    def test_possible_outcomes(self):
-        possiblities = ['Base hit', 'Double', 'Triple', 'Home run', 'Strike', 'Foul', 'Ball', 'Walk (batter hit)', 'Popup']
-        possiblities.sort()
-        self.assertEqual(self.baseball_simulator.get_possible_plays(), possiblities)
+# need to create score
+#     def test_teams(self):
+#         self.assertEqual(self.baseball_simulator.team1.get_score(), 0)
 
-        self.baseball_simulator.set_num_strikes(2)
-        possiblities.append('Strike Out')
-        possiblities.sort()
-        self.assertEqual(self.baseball_simulator.get_possible_plays(), possiblities)
 
 if __name__ == '__main__':
     unittest.main()
