@@ -67,10 +67,15 @@ class TestBaseBallSimulator(unittest.TestCase):
         self.assertTrue(self.baseball_simulator.is_game_over())
         
     def test_walk(self):
-        for i in range(4):
-            self.baseball_simulator.ball()
+        self.baseball_simulator.batter_hit_by_pitch()
 
         self.assertTrue(self.baseball_simulator.is_man_on_first())
+
+        self.baseball_simulator.batter_hit_by_pitch()
+
+        self.assertTrue(self.baseball_simulator.is_man_on_first())
+        self.assertTrue(self.baseball_simulator.is_man_on_second())
+
 
 # need to create score
 #     def test_teams(self):

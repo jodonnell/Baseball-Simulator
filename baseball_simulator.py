@@ -78,6 +78,10 @@ class BaseballSimulator(object):
             self._walk()
             self._new_at_bat()
 
+    def batter_hit_by_pitch(self):
+        self._new_at_bat()
+        self._walk()
+
     def _walk(self):
         self.set_man_on_first()
 
