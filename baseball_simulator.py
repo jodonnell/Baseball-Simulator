@@ -1,3 +1,12 @@
+"""
+A program that simulates a baseball game.
+
+Unfortunately, I did not have the time to fully flesh it out (baseball's complicated!).
+Some missing functionality includes, for a strategy where a runner could run past another 
+runner which is not allowed in baseball.
+Also the logic for driving a hit got kind of ugly, ie having set_runner_on overloaded to cause an out.
+"""
+
 import random
 
 FIRST_BASE = 1
@@ -15,32 +24,86 @@ STRIKES_IN_OUT = 3
 OUTS_IN_AT_BAT = 3
 
 
-class BaseballSimulatorExceptions(Exception):
-    pass
+# Strategies that implement what happens when a hit is made.
+class SingleStrategy(object):
+    def decide(self, current_base):
+        return current_base.get_next_base()
 
-# class RandomHit(object):
-#     def random(self):
-        
+class DoubleStrategy(object):
+    def decide(self, current_base):
+        next_base = current_base.get_next_base()
+        return next_base.get_next_base()
+
+class OutStrategy(object):
+    def decide(self, current_base):
+        return Out()
+
+class RandomStrategy(object):
+    def decide(self, current_base):
+        if random.randint(0, 1):
+            return current_base.get_next_base()
+        return Out()
+
+
+# Classes that represent bases and possible play outcomes
+class BaseAbstract(object):
+    def __init__(self, next_base=None):
+        self._next_base = next_base
+
+    def get_next_base(self):
+        return self._next_base
+
+    def is_runner_on(self):
+        return self._is_man_on
+
+    def set_runner_on(self, runner_on, team_at_bat, baseball_simulator):
+        "This should really use the command pattern rather than passing all possibly needed vars"
+        pass
+
+class Base(BaseAbstract):
+    def __init__(self, next_base):
+        super(Base, self).__init__(next_base)
+        self._is_man_on = False
+
+    def set_runner_on(self, runner_on, team_at_bat, baseball_simulator):
+        self._is_man_on = runner_on
+
+class HomeBase(BaseAbstract):
+    def set_runner_on(self, runner_on, team_at_bat, baseball_simulator):
+        team_at_bat.score()
+
+class Out(BaseAbstract):
+    def set_runner_on(self, runner_on, team_at_bat, baseball_simulator):
+        baseball_simulator.out()
+
+class Hitter(BaseAbstract):
+    def __init__(self, next_base):
+        super(Hitter, self).__init__(next_base)
+        self._is_man_on = True
+
+    def set_runner_on(self, runner_on, team_at_bat, baseball_simulator):
+        self._is_man_on = True # score
 
 class Bases(object):
-    self.bases = (Base(), Base(), Base(), HomeBase())
-    
-    for base in self.bases.reverse():
-        if base.has_runner():
-            base.remove_runner()
-            possible_bases = base.get_possible_bases() # bases
-            runner_strategy.decide(possible_bases) # will either place runner on base or remove him completely from play
+    def __init__(self):
+        self.home_base = HomeBase()
+        self.third_base = Base(self.home_base)
+        self.second_base = Base(self.third_base)
+        self.first_base = Base(self.second_base)
+        self.hitter = Hitter(self.first_base)
 
-class Runner(object):
-    pass
+    def advance_runners(self, hit_strategy, team_at_bat, baseball_simulator):
+        for base in (self.third_base, self.second_base, self.first_base, self.hitter):
+            if base.is_runner_on():
+                base.set_runner_on(False, team_at_bat, baseball_simulator)
+                new_position = hit_strategy.decide(base) # will either place runner on base or remove him completely from play
+                new_position.set_runner_on(True, team_at_bat, baseball_simulator)
 
 class Inning(object):
-    def __init__(self, visiting_team, home_team):
+    def __init__(self, visiting_team):
         self._inning = 1
         self._inning_half = TOP_OF_INNING
-        self._visiting_team = visiting_team
-        self._home_team = home_team
-        self._team_at_bat = self._visiting_team
+        self._team_at_bat = visiting_team
 
     def get_inning_half(self):
         return self._inning_half
@@ -48,19 +111,17 @@ class Inning(object):
     def get_inning(self):
         return self._inning
 
-    def at_bat_over(self):
+    def at_bat_over(self, home_team, visiting_team):
         if self._inning_half == TOP_OF_INNING:
             self._inning_half = BOTTOM_OF_INNING
-            self._team_at_bat = self._home_team
+            self._team_at_bat = home_team
         elif self._inning_half == BOTTOM_OF_INNING:
             self._inning_half = TOP_OF_INNING
             self._inning += 1
-            self._team_at_bat = self._visiting_team
+            self._team_at_bat = visiting_team
 
     def could_game_be_over(self):
-        if self._inning > INNINGS_IN_GAME and self._inning_half == TOP_OF_INNING:
-            return True
-        return False
+        return self._inning > INNINGS_IN_GAME and self._inning_half == TOP_OF_INNING
 
     def get_team_at_bat(self):
         return self._team_at_bat
@@ -84,16 +145,8 @@ class BaseballSimulator(object):
         self._game_over = False
         self.visiting_team = Team()
         self.home_team = Team()
-        self._inning = Inning(self.visiting_team, self.home_team)
-
-    def is_man_on_first(self):
-        return self._is_man_on_base(FIRST_BASE)
-
-    def is_man_on_second(self):
-        return self._is_man_on_base(SECOND_BASE)
-
-    def is_man_on_third(self):
-        return self._is_man_on_base(THIRD_BASE)
+        self._inning = Inning(self.visiting_team)
+        self.bases = Bases()
 
     def get_num_balls(self):
         return self._num_balls
@@ -121,47 +174,24 @@ class BaseballSimulator(object):
     def strike(self):
         self._num_strikes += 1
         if self._num_strikes == STRIKES_IN_OUT:
-            self._out()
+            self.out()
             self._new_at_bat()
 
     def ball(self):
+        "Unfinished"
         self._num_balls += 1
         if self._num_balls == BALLS_TO_WALK:
-            self._walk()
+            #self._walk()
             self._new_at_bat()
-
-    def batter_hit_by_pitch(self):
-        self._new_at_bat()
-        self._walk()
 
     def foul(self):
         if self._num_strikes < STRIKES_IN_OUT - 1:
             self._num_strikes += 1
 
     def hit(self, hit_strategy):
-        pass
+        self.bases.advance_runners(hit_strategy, self._inning.get_team_at_bat(), self)
 
-    def _set_man_on(self, base):
-        if base not in self._men_on_base:
-            self._men_on_base.append(base)
-
-    def _is_man_on_base(self, base):
-        if base in self._men_on_base:
-            return True
-        return False
-
-    def _walk(self):
-        if self.is_man_on_first() and self.is_man_on_second() and self.is_man_on_third():
-            self._inning.get_team_at_bat().score()
-        elif self.is_man_on_first() and self.is_man_on_second():
-            self._set_man_on(THIRD_BASE)
-        elif self.is_man_on_first():
-            self._set_man_on(SECOND_BASE)
-
-        self._set_man_on(FIRST_BASE)
-        self._new_at_bat()
-
-    def _out(self):
+    def out(self):
          self._num_outs += 1
          if self._num_outs == OUTS_IN_AT_BAT:
              self._num_outs = 0
@@ -169,7 +199,7 @@ class BaseballSimulator(object):
 
     def _change_team_at_bat(self):
         self._new_at_bat()
-        self._inning.at_bat_over()
+        self._inning.at_bat_over(self.home_team, self.visiting_team)
 
         if self._inning.could_game_be_over() and not self.is_score_tied():
             self._game_over = True
@@ -180,3 +210,8 @@ class BaseballSimulator(object):
 
 if __name__ == '__main__':
     baseball_simulator = BaseballSimulator()
+    while not baseball_simulator.is_game_over():
+        baseball_simulator.hit(RandomStrategy())
+
+    print "Visting team: %i" % baseball_simulator.visiting_team.get_score()
+    print "Home team: %i" % baseball_simulator.home_team.get_score()
